@@ -1,0 +1,1287 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RoASt Goals Editor</title>
+    <script src="../config/js/tailwind.min.js"></script>
+    <link href="../config/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* === GOALS SIMULATOR STYLES === */
+      .simulation-frame {
+        border: 1px solid #d1d9e0;
+        border-radius: 6px;
+        padding: 10px;
+        margin: 0 15px 12px 15px;
+        background-color: #fcfdff;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex-shrink: 0;
+        transition:
+          opacity 0.2s ease-in-out,
+          box-shadow 0.2s ease-in-out;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+      }
+
+      .simulation-frame:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        border-color: #a8b5c1;
+      }
+
+      .frame-header {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .drag-handle {
+        width: 24px;
+        height: 24px;
+        background-color: #e9edf0;
+        border: 1px solid #c8d1d9;
+        border-radius: 4px;
+        cursor: move;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #5f6b7a;
+        line-height: 1;
+        transition:
+          background-color 0.2s,
+          box-shadow 0.2s;
+        flex-shrink: 0;
+        margin-right: 10px;
+      }
+
+      .drag-handle::before {
+        content: "☰";
+        font-weight: bold;
+      }
+
+      .drag-handle:hover {
+        background-color: #dce3e9;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      .simulation-frame h4 {
+        text-align: left;
+        margin: 0;
+        font-size: 1.05em;
+        color: #444;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-grow: 1;
+        padding: 0 5px;
+      }
+
+      .close-frame-btn {
+        background: linear-gradient(145deg, #ffebee, #ffcdd2);
+        color: #c62828;
+        border: 2px solid #f48fb1;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow:
+          0 2px 6px rgba(198, 40, 40, 0.2),
+          0 1px 3px rgba(198, 40, 40, 0.1);
+      }
+
+      .close-frame-btn:hover {
+        background: linear-gradient(145deg, #f48fb1, #e57373);
+        color: #fff;
+        transform: scale(1.1) rotate(90deg);
+        box-shadow:
+          0 4px 12px rgba(198, 40, 40, 0.3),
+          0 2px 6px rgba(198, 40, 40, 0.2);
+      }
+
+      .rotate-btn {
+        background: linear-gradient(145deg, #e3f2fd, #bbdefb);
+        color: #1976d2;
+        border: 2px solid #90caf9;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        flex-shrink: 0;
+        margin-left: 8px;
+        padding: 0;
+        font-size: 14px;
+        font-weight: 600;
+        box-shadow:
+          0 2px 6px rgba(25, 118, 210, 0.2),
+          0 1px 3px rgba(25, 118, 210, 0.1);
+      }
+
+      .rotate-btn:hover {
+        background: linear-gradient(145deg, #90caf9, #64b5f6);
+        color: #fff;
+        transform: rotate(90deg) scale(1.1);
+        box-shadow:
+          0 4px 12px rgba(25, 118, 210, 0.3),
+          0 2px 6px rgba(25, 118, 210, 0.2);
+      }
+
+      .simulation-frame .grids-wrapper {
+        display: flex;
+        overflow-x: auto;
+        width: 100%;
+        gap: 15px;
+        padding-bottom: 15px;
+        align-items: flex-start;
+        scrollbar-width: thin;
+        scrollbar-color: #adb5bd #f1f3f5;
+      }
+
+      .simulation-frame .frame-canvas-container {
+        text-align: center;
+        min-width: 305px;
+        flex-shrink: 0;
+        position: relative;
+        border: 2px solid transparent;
+        border-radius: 6px;
+        transition: border-color 0.2s ease;
+      }
+
+      .simulation-frame .frame-canvas-container h5 {
+        font-size: 0.9em;
+        color: #666;
+        margin-bottom: 4px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .simulation-frame canvas {
+        border: 1px solid #c8d1d9;
+        cursor: pointer;
+        background-color: #f8f9fa;
+        max-width: 100%;
+        height: auto;
+        border-radius: 6px;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .simulation-frame .boundary-info {
+        font-family: monospace;
+        font-size: 0.8em;
+        color: #5f6b7a;
+        margin-top: 5px;
+        text-align: center;
+      }
+
+      .add-grid-btn-container {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 100px;
+        height: 335px;
+        padding-left: 10px;
+      }
+
+      .add-grid-btn {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 3px dashed #adb5bd;
+        background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+        color: #495057;
+        font-size: 28px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        box-shadow:
+          0 2px 6px rgba(173, 181, 189, 0.2),
+          0 1px 3px rgba(173, 181, 189, 0.1);
+      }
+
+      .add-grid-btn:hover {
+        background: linear-gradient(145deg, #e9ecef, #dee2e6);
+        border-color: #6c757d;
+        color: #343a40;
+        transform: scale(1.08);
+      }
+
+      .grid-delete-btn {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid #dc3545;
+        background: linear-gradient(145deg, #ffffff, #f8f9fa);
+        color: #dc3545;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.8;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        z-index: 10;
+      }
+
+      .grid-delete-btn:hover {
+        opacity: 1;
+        background: linear-gradient(145deg, #dc3545, #c82333);
+        color: white;
+        transform: scale(1.15) rotate(180deg);
+      }
+
+      .dragging-source-canvas {
+        opacity: 0.6;
+        border-style: dashed;
+      }
+
+      .drop-target-canvas {
+        box-shadow: 0 0 12px rgba(30, 200, 30, 0.8);
+        border-color: #4caf50;
+      }
+
+      .simulation-frame.dragging {
+        opacity: 0.3;
+        border-style: dashed;
+        box-shadow: none;
+        background-color: #eef2f5;
+      }
+
+      .drop-indicator {
+        height: 6px;
+        background-color: #4a90e2;
+        margin: -2px 15px 10px 15px;
+        border-radius: 3px;
+        flex-shrink: 0;
+        box-shadow: 0 1px 3px rgba(0, 0, 200, 0.3);
+      }
+
+      /* Palette Items */
+      .palette-robot {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: grab;
+        border: 2px solid #555;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          transform 0.1s ease-out,
+          box-shadow 0.1s ease-out;
+        flex-shrink: 0;
+        color: white;
+        font-weight: 700;
+        font-size: 14px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+
+      .palette-robot:hover {
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+      }
+
+      .palette-robot:active {
+        cursor: grabbing;
+        transform: scale(1.1);
+      }
+
+      .palette-waypoint {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: grab;
+        border: 2px solid #555;
+        background-color: #000000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          transform 0.1s ease-out,
+          box-shadow 0.1s ease-out;
+        flex-shrink: 0;
+      }
+
+      .palette-waypoint::after {
+        content: "";
+        width: 22px;
+        height: 22px;
+        background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="%23ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+
+      .palette-exclusive-point {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: grab;
+        border: 2px solid #555;
+        background-color: #000000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          transform 0.1s ease-out,
+          box-shadow 0.1s ease-out;
+        flex-shrink: 0;
+      }
+
+      .palette-exclusive-point::after {
+        content: "";
+        width: 22px;
+        height: 22px;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="%23fff" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+
+      .palette-waypoint:hover,
+      .palette-exclusive-point:hover {
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+      }
+
+      .palette-waypoint:active,
+      .palette-exclusive-point:active {
+        cursor: grabbing;
+        transform: scale(1.1);
+      }
+
+      /* Color-specific waypoint styles */
+      .palette-waypoint[data-color]:not([data-color="-"]) {
+        position: relative;
+      }
+
+      .palette-waypoint[data-color]:not([data-color="-"])::after {
+        content: "";
+        width: 22px;
+        height: 22px;
+        background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="%23ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+      }
+
+      .palette-waypoint[data-color]:not([data-color="-"])::before {
+        content: attr(data-color);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-weight: 700;
+        font-size: 11px;
+        z-index: 2;
+        text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+      }
+
+      /* Color-specific exclusive point styles */
+      .palette-exclusive-point[data-color]:not([data-color="-"]) {
+        position: relative;
+      }
+
+      .palette-exclusive-point[data-color]:not([data-color="-"])::before {
+        content: attr(data-color);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-weight: 700;
+        font-size: 12px;
+        z-index: 2;
+      }
+
+      /* All-colors-mixed ('*') palette items */
+      .palette-waypoint[data-color="*"],
+      .palette-exclusive-point[data-color="*"] {
+        position: relative;
+        /* background is set by JS via conic-gradient */
+        border: 2px solid #555;
+      }
+
+      .palette-waypoint[data-color="*"]::before,
+      .palette-exclusive-point[data-color="*"]::before {
+        content: "*";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -55%);
+        color: white;
+        font-weight: 900;
+        font-size: 22px;
+        z-index: 2;
+        text-shadow: 0 0 4px rgba(0, 0, 0, 0.95);
+        pointer-events: none;
+        line-height: 1;
+      }
+
+      /* Wall Palette Items */
+      .palette-wall-horizontal,
+      .palette-wall-vertical {
+        width: 30px;
+        height: 30px;
+        cursor: grab;
+        border: 2px solid #333;
+        background-color: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          transform 0.1s ease-out,
+          box-shadow 0.1s ease-out;
+        flex-shrink: 0;
+      }
+
+      .palette-wall-horizontal::after {
+        content: "";
+        width: 20px;
+        height: 4px;
+        background-color: #333;
+        border-radius: 2px;
+      }
+
+      .palette-wall-vertical::after {
+        content: "";
+        width: 4px;
+        height: 20px;
+        background-color: #333;
+        border-radius: 2px;
+      }
+
+      .palette-wall-horizontal:hover,
+      .palette-wall-vertical:hover {
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        background-color: #e0e0e0;
+      }
+
+      .palette-wall-horizontal:active,
+      .palette-wall-vertical:active {
+        cursor: grabbing;
+        transform: scale(1.1);
+      }
+
+      /* === END GOALS SIMULATOR STYLES === */
+
+      body {
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+      }
+
+      .main-card {
+        background: white;
+        box-shadow:
+          0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06),
+          0 0 0 1px rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.3s ease;
+      }
+
+      .main-card:hover {
+        box-shadow:
+          0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05),
+          0 0 0 1px rgba(0, 0, 0, 0.05);
+      }
+
+      .main-container {
+        display: flex;
+        flex-grow: 1;
+        gap: 0;
+        max-height: 100%;
+        overflow: hidden;
+        position: relative;
+        height: 100%;
+      }
+
+      @media (max-width: 768px) {
+        .grids-wrapper {
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          overflow-x: visible !important;
+        }
+
+        .simulation-frame {
+          margin: 0 5px 12px 5px !important;
+        }
+
+        .robot-palette {
+          flex-wrap: wrap !important;
+          justify-content: center !important;
+          gap: 8px !important;
+        }
+
+        #simulator-column {
+          padding: 0.5rem !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    <div class="w-full px-2 sm:px-4 py-2 sm:py-4">
+      <div
+        class="main-card p-4 sm:p-6 rounded-2xl w-full mx-auto transition-all duration-300"
+      >
+        <!-- Header -->
+        <div
+          class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200"
+        >
+          <h1 class="text-2xl font-bold text-gray-900">RoASt Goals Editor</h1>
+          <button
+            type="button"
+            id="goalsHelpBtn"
+            class="btn btn-info btn-sm"
+            style="padding: 5px 10px; font-size: 0.9em"
+            title="Open help guide"
+          >
+            Instructions
+          </button>
+        </div>
+
+        <!-- Goals Simulator Container -->
+        <div
+          id="goals-simulator-container"
+          class="w-full bg-white rounded-xl border-2 border-gray-200 overflow-hidden shadow-sm mb-6"
+          style="height: 600px"
+        >
+          <div class="main-container">
+            <div
+              id="simulator-column"
+              style="
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                border: 1px solid #d1d9e0;
+                border-radius: 8px;
+                background-color: #ffffff;
+                overflow-y: auto;
+                position: relative;
+                padding-bottom: 15px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+                scrollbar-width: thin;
+                scrollbar-color: #adb5bd #f1f3f5;
+              "
+            >
+              <div
+                class="robot-palette"
+                style="
+                  display: flex;
+                  justify-content: center;
+                  gap: 15px;
+                  margin-bottom: 0;
+                  align-items: center;
+                  flex-shrink: 0;
+                  position: sticky;
+                  top: 0;
+                  background-color: white;
+                  z-index: 20;
+                  padding: 12px 15px;
+                  border-bottom: 1px solid #e4e9ed;
+                  flex-wrap: wrap;
+                "
+              >
+                <!-- Robots will be inserted here by JavaScript -->
+                <span id="robot-separator" style="color: #ccc; margin: 0 5px"
+                  >|</span
+                >
+
+                <!-- General waypoint + color-specific waypoints (added by JS) -->
+                <div
+                  class="palette-waypoint"
+                  data-type="waypoint"
+                  data-color="-"
+                  title="General Waypoint (all colors)"
+                ></div>
+
+                <!-- Separator after waypoints (before exclusive points) -->
+                <span style="color: #ccc; margin: 0 5px">|</span>
+
+                <!-- General exclusive point + color-specific exclusive points (added by JS) -->
+                <div
+                  class="palette-exclusive-point"
+                  data-type="exclusive_point"
+                  data-color="-"
+                  title="General Exclusive Point (all colors)"
+                ></div>
+
+                <!-- Separator after exclusive points -->
+                <span style="color: #ccc; margin: 0 5px">|</span>
+
+                <div
+                  class="palette-wall-horizontal"
+                  data-type="wall_horizontal"
+                  title="Horizontal Wall"
+                ></div>
+                <div
+                  class="palette-wall-vertical"
+                  data-type="wall_vertical"
+                  title="Vertical Wall"
+                ></div>
+                <div style="flex-grow: 1"></div>
+                <button
+                  id="resetConfigBtn"
+                  class="btn btn-danger btn-sm"
+                  style="padding: 5px 10px; font-size: 0.9em"
+                  title="Reset to default goals"
+                >
+                  Reset Goals
+                </button>
+                <button
+                  id="addFrameBtn"
+                  class="btn btn-primary btn-sm"
+                  style="padding: 5px 10px; font-size: 0.9em"
+                  title="Add new simulation frame"
+                >
+                  + Add Goal
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="resize-handle"
+              id="resizeHandle"
+              style="
+                width: 8px;
+                background: linear-gradient(
+                  to right,
+                  #e9ecef,
+                  #dee2e6,
+                  #e9ecef
+                );
+                cursor: col-resize;
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-left: 1px solid #dee2e6;
+                border-right: 1px solid #dee2e6;
+                transition: background 0.2s ease;
+                user-select: none;
+              "
+            >
+              <button
+                class="toggle-editor-btn"
+                id="toggleEditorBtn"
+                style="
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  width: 28px;
+                  height: 44px;
+                  background: linear-gradient(145deg, #ffffff, #f0f2f5);
+                  border: 2px solid #dee2e6;
+                  border-radius: 14px;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 13px;
+                  font-weight: 600;
+                  color: #6c757d;
+                  z-index: 10;
+                "
+                title="Toggle editor panel"
+              >
+                ▸
+              </button>
+            </div>
+
+            <div
+              id="editor-column"
+              style="
+                flex: 1;
+                display: none;
+                flex-direction: column;
+                padding: 15px;
+                border: 1px solid #d1d9e0;
+                border-radius: 8px;
+                background-color: #ffffff;
+                overflow: hidden;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+              "
+            >
+              <div
+                class="editor-controls"
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 1px;
+                  flex-shrink: 0;
+                "
+              >
+                <label
+                  for="simulationConfigList"
+                  style="
+                    width: 340px;
+                    margin-bottom: 0;
+                    font-weight: 600;
+                    color: #333;
+                    font-size: 1em;
+                  "
+                  >Active Simulation Config (JSON):</label
+                >
+                <div
+                  class="editor-btn-group"
+                  style="
+                    display: flex;
+                    justify-content: flex-end;
+                    align-items: center;
+                    gap: 10px;
+                    width: 100%;
+                  "
+                >
+                  <button
+                    id="copyConfigBtn"
+                    class="btn btn-secondary btn-sm"
+                    title="Copy JSON to clipboard"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+              <textarea
+                id="simulationConfigList"
+                rows="20"
+                spellcheck="false"
+                readonly
+                style="
+                  flex-grow: 1;
+                  width: 100%;
+                  font-family: &quot;Courier New&quot;, Courier, monospace;
+                  font-size: 0.9em;
+                  border: 1px solid #ddd;
+                  resize: none;
+                  background-color: #f9fafb;
+                  white-space: pre;
+                  overflow-wrap: normal;
+                  overflow: auto;
+                  padding: 12px;
+                  border-radius: 6px;
+                  color: #333;
+                  line-height: 1.4;
+                "
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div
+          class="pt-4 mt-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between gap-4"
+        >
+          <button
+            type="button"
+            id="downloadGoalsBtn"
+            class="group w-full sm:w-auto flex items-center justify-center py-3 px-8 border-2 border-gray-300 rounded-lg shadow-sm text-base font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all"
+          >
+            <svg
+              class="mr-2 w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
+            </svg>
+            Download Goals JSON
+          </button>
+          <button
+            type="button"
+            id="submitGoalsBtn"
+            class="group w-full sm:w-auto flex items-center justify-center py-3 px-8 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all"
+          >
+            <svg
+              class="mr-2 w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+              />
+            </svg>
+            Submit Goals to Server
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="dragGhost"
+      style="
+        position: fixed;
+        pointer-events: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10000;
+        display: none;
+        border: 2px solid rgba(0, 0, 0, 0.8);
+        opacity: 0.9;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      "
+    ></div>
+    <div
+      id="boundaryGhost"
+      style="
+        position: fixed;
+        pointer-events: none;
+        z-index: 10000;
+        display: none;
+        background-color: rgba(50, 120, 255, 0.5);
+        opacity: 0.7;
+      "
+    ></div>
+
+    <!-- Help Modal -->
+    <div
+      id="goalsHelpModal"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        z-index: 10000;
+        overflow-y: auto;
+      "
+    >
+      <div
+        style="
+          position: relative;
+          margin: 50px auto;
+          max-width: 800px;
+          background-color: white;
+          border-radius: 8px;
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        "
+      >
+        <div
+          style="
+            background: #4a5568;
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+          "
+        >
+          <h2 style="margin: 0; font-size: 18px; font-weight: 600">
+            Goals Editor Help
+          </h2>
+          <button
+            id="closeHelpModal"
+            style="
+              background: transparent;
+              border: none;
+              color: white;
+              font-size: 28px;
+              cursor: pointer;
+              padding: 0;
+              width: 28px;
+              height: 28px;
+              line-height: 1;
+              opacity: 0.8;
+            "
+            onmouseover="this.style.opacity = '1'"
+            onmouseout="this.style.opacity = '0.8'"
+          >
+            &times;
+          </button>
+        </div>
+        <div
+          style="
+            padding: 24px;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+            line-height: 1.6;
+            color: #333;
+            font-size: 14px;
+          "
+        >
+          <h3
+            style="
+              font-size: 16px;
+              font-weight: 600;
+              margin: 0 0 12px 0;
+              color: #2d3748;
+            "
+          >
+            Goals Editor Instructions
+          </h3>
+          <p style="margin: 0 0 16px 0">
+            Create the specific scenarios your robots need to solve.
+          </p>
+          <div
+            style="
+              background: #f7fafc;
+              padding: 14px;
+              border-radius: 6px;
+              margin-bottom: 14px;
+              border-left: 3px solid #4a5568;
+            "
+          >
+            <strong style="display: block; margin-bottom: 6px; color: #2d3748"
+              >How to Define a Goal:</strong
+            >
+            <ol style="margin: 0; padding-left: 20px">
+              <li style="margin-bottom: 6px">
+                Click <strong>+ Add Goal</strong> to start a new scenario.
+              </li>
+              <li style="margin-bottom: 6px">
+                Place robots on the <strong>Start</strong> grid and the
+                <strong>Target</strong> grid.
+              </li>
+              <li style="margin-bottom: 6px">
+                Set <strong>Boundaries</strong> by dragging the dashed lines.
+              </li>
+              <li style="margin-bottom: 6px">
+                Add <strong>Waypoints</strong> (locations to visit) or
+                <strong>Exclusive Points</strong> (locations to avoid) if
+                needed.
+              </li>
+            </ol>
+          </div>
+          <div
+            style="
+              background: #ebf8ff;
+              padding: 12px;
+              border-radius: 6px;
+              border-left: 4px solid #4299e1;
+            "
+          >
+            <strong>Submit:</strong> Click "Submit Goals to Server" to send
+            updated goals to <code>/api/goals</code>, or "Download Goals JSON"
+            to save locally.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PART 1: Load default colors and goals from separate files -->
+    <script src="default-colors.js"></script>
+    <script src="default-goals.js"></script>
+    <script>
+      // === STANDALONE GOALS EDITOR JAVASCRIPT ===
+      const canEdit = true;
+
+      // Convert integer RGB to hex CSS color
+      function intToHexColor(intColor) {
+        return "#" + intColor.toString(16).padStart(6, "0").toUpperCase();
+      }
+
+      // Build letterColorMap from defaultColorList
+      const letterColorMap = {};
+      for (const [letter, intColor] of Object.entries(defaultColorList)) {
+        letterColorMap[letter] = intToHexColor(intColor);
+      }
+
+      // Auto-populate the robot palette from defaultColorList on load
+      document.addEventListener("DOMContentLoaded", function () {
+        const palette = document.querySelector(".robot-palette");
+        if (!palette) return;
+
+        // Find the robot separator to insert robots before
+        const robotSeparator = palette.querySelector("#robot-separator");
+        const firstNonRobot = palette.querySelector(".palette-waypoint");
+
+        // Remove existing static palette robots
+        palette.querySelectorAll(".palette-robot").forEach((el) => el.remove());
+
+        // Create palette robots from defaultColorList - insert after separator
+        for (const [letter, intColor] of Object.entries(defaultColorList)) {
+          const div = document.createElement("div");
+          div.className = "palette-robot";
+          div.dataset.color = letter;
+          div.style.backgroundColor = intToHexColor(intColor);
+          div.title = `Robot '${letter}'`;
+          div.textContent = letter;
+          if (robotSeparator) {
+            palette.insertBefore(div, robotSeparator);
+          } else if (firstNonRobot) {
+            palette.insertBefore(div, firstNonRobot);
+          } else {
+            palette.appendChild(div);
+          }
+        }
+
+        // Add color-specific waypoints after the general waypoint
+        const generalWaypoint = palette.querySelector(
+          '.palette-waypoint[data-color="-"]',
+        );
+        const generalExclusive = palette.querySelector(
+          '.palette-exclusive-point[data-color="-"]',
+        );
+
+        // Create color-specific waypoints
+        for (const [letter, intColor] of Object.entries(defaultColorList)) {
+          const waypointDiv = document.createElement("div");
+          waypointDiv.className = "palette-waypoint";
+          waypointDiv.dataset.type = "waypoint";
+          waypointDiv.dataset.color = letter;
+          waypointDiv.style.backgroundColor = intToHexColor(intColor);
+          waypointDiv.title = `Waypoint for '${letter}' robot only`;
+          // Insert after general waypoint
+          if (generalWaypoint && generalWaypoint.nextSibling) {
+            palette.insertBefore(waypointDiv, generalWaypoint.nextSibling);
+          } else {
+            palette.appendChild(waypointDiv);
+          }
+        }
+
+        // Create color-specific exclusive points
+        for (const [letter, intColor] of Object.entries(defaultColorList)) {
+          const exclusiveDiv = document.createElement("div");
+          exclusiveDiv.className = "palette-exclusive-point";
+          exclusiveDiv.dataset.type = "exclusive_point";
+          exclusiveDiv.dataset.color = letter;
+          exclusiveDiv.style.backgroundColor = intToHexColor(intColor);
+          exclusiveDiv.title = `Exclusive Point for '${letter}' robot only`;
+          // Insert after general exclusive point
+          if (generalExclusive && generalExclusive.nextSibling) {
+            palette.insertBefore(exclusiveDiv, generalExclusive.nextSibling);
+          } else {
+            palette.appendChild(exclusiveDiv);
+          }
+        }
+
+        // --- Add '*' (all-colors-mixed) palette items ---
+        // Build conic-gradient from all robot colors
+        const allHexColors = Object.values(defaultColorList).map(intToHexColor);
+        const buildConicGradient = (colors) => {
+          if (colors.length === 0) return "#888";
+          const step = 100 / colors.length;
+          const stops = colors
+            .map((c, i) => `${c} ${i * step}% ${(i + 1) * step}%`)
+            .join(", ");
+          return `conic-gradient(${stops})`;
+        };
+        const conicBg = buildConicGradient(allHexColors);
+
+        // Mixed waypoint ('*') — inserted right after generalWaypoint
+        const mixedWaypointDiv = document.createElement("div");
+        mixedWaypointDiv.className = "palette-waypoint";
+        mixedWaypointDiv.dataset.type = "waypoint";
+        mixedWaypointDiv.dataset.color = "*";
+        mixedWaypointDiv.style.background = conicBg;
+        mixedWaypointDiv.title =
+          'Mixed Waypoint — all robots\' colors combined (JSON: "*")';
+        if (generalWaypoint && generalWaypoint.nextSibling) {
+          palette.insertBefore(mixedWaypointDiv, generalWaypoint.nextSibling);
+        } else {
+          palette.appendChild(mixedWaypointDiv);
+        }
+
+        /* // Mixed exclusive point ('*') — inserted right after generalExclusive
+        const mixedExclusiveDiv = document.createElement("div");
+        mixedExclusiveDiv.className = "palette-exclusive-point";
+        mixedExclusiveDiv.dataset.type = "exclusive_point";
+        mixedExclusiveDiv.dataset.color = "*";
+        mixedExclusiveDiv.style.background = conicBg;
+        mixedExclusiveDiv.title = "Mixed Exclusive Point — all robots\' colors combined (JSON: \"*\")";
+        if (generalExclusive && generalExclusive.nextSibling) {
+          palette.insertBefore(mixedExclusiveDiv, generalExclusive.nextSibling);
+        } else {
+          palette.appendChild(mixedExclusiveDiv);
+        }*/
+      });
+    </script>
+
+    <!-- PART 2: Full simulator JS extracted from config/index.html -->
+    <script src="goals-simulator.js"></script>
+
+    <!-- PART 3: Standalone button handlers and modal setup -->
+    <script>
+      // Dynamically size the simulator container so action buttons stay visible
+      function adjustContainerHeight() {
+        const container = document.getElementById("goals-simulator-container");
+        const actionBtns = container.parentElement.querySelector(
+          ".border-t.border-gray-200",
+        );
+        if (!container) return;
+        const containerTop =
+          container.getBoundingClientRect().top + window.scrollY;
+        const scrollTop = window.scrollY;
+        const actionBtnsHeight = actionBtns ? actionBtns.offsetHeight + 32 : 80;
+        const available =
+          window.innerHeight -
+          (containerTop - scrollTop) -
+          actionBtnsHeight -
+          16;
+        container.style.height = Math.max(250, available) + "px";
+      }
+      window.addEventListener("resize", adjustContainerHeight);
+      // Run after layout is ready
+      window.addEventListener("load", adjustContainerHeight);
+      document.addEventListener("DOMContentLoaded", function () {
+        // Slight delay to let fonts/layout settle
+        setTimeout(adjustContainerHeight, 50);
+      });
+
+      // goals-simulator.js auto-initializes when it detects standalone mode (no 'page-1' element)
+      // This script just sets up standalone-specific button handlers
+      document.addEventListener("DOMContentLoaded", function () {
+        // --- Submit Goals Button ---
+        const submitGoalsBtn = document.getElementById("submitGoalsBtn");
+        if (submitGoalsBtn) {
+          submitGoalsBtn.addEventListener("click", function () {
+            const textarea = document.getElementById("simulationConfigList");
+            if (!textarea || !textarea.value.trim()) {
+              alert("No goals configuration to submit.");
+              return;
+            }
+            try {
+              const goalsJson = JSON.parse(textarea.value);
+              fetch("/api/goals", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(goalsJson),
+              })
+                .then((response) => {
+                  if (response.ok) {
+                    const originalText = submitGoalsBtn.innerHTML;
+                    submitGoalsBtn.innerHTML = "✓ Submitted!";
+                    submitGoalsBtn.classList.remove(
+                      "from-green-600",
+                      "to-green-700",
+                    );
+                    submitGoalsBtn.classList.add(
+                      "from-blue-600",
+                      "to-blue-700",
+                    );
+
+                    // Show success alert and close the page
+                    alert(
+                      "✅ Goals submitted successfully! The page will now close.",
+                    );
+                    window.close();
+                  } else {
+                    response
+                      .text()
+                      .then((text) => alert("Failed to submit goals: " + text));
+                  }
+                })
+                .catch((err) =>
+                  alert("Error submitting goals: " + err.message),
+                );
+            } catch (e) {
+              alert("Invalid JSON in goals configuration: " + e.message);
+            }
+          });
+        }
+
+        // --- Download Goals Button ---
+        const downloadGoalsBtn = document.getElementById("downloadGoalsBtn");
+        if (downloadGoalsBtn) {
+          downloadGoalsBtn.addEventListener("click", function () {
+            const textarea = document.getElementById("simulationConfigList");
+            if (!textarea || !textarea.value.trim()) {
+              alert("No goals configuration to download.");
+              return;
+            }
+            const blob = new Blob([textarea.value], {
+              type: "application/json",
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "goals.json";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          });
+        }
+
+        // --- Help Modal Setup ---
+        const setupModal = (btnId, modalId, closeId) => {
+          const btn = document.getElementById(btnId);
+          const modal = document.getElementById(modalId);
+          const close = document.getElementById(closeId);
+          if (btn && modal) {
+            btn.addEventListener("click", (e) => {
+              e.preventDefault();
+              modal.style.display = "block";
+            });
+          }
+          if (close && modal) {
+            close.addEventListener("click", () => {
+              modal.style.display = "none";
+            });
+          }
+          if (modal) {
+            modal.addEventListener("click", (e) => {
+              if (e.target === modal) {
+                modal.style.display = "none";
+              }
+            });
+          }
+        };
+        setupModal("goalsHelpBtn", "goalsHelpModal", "closeHelpModal");
+      });
+    </script>
+  </body>
+</html>
