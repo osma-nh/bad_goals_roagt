@@ -1,0 +1,291 @@
+# 
+****** OPTIONS ******
+version: 1
+walls:
+  - - 0
+    - 0
+    - 0
+  - - 12
+    - 14
+    - 2
+chirality: true
+visibilityRange: 1
+dimension: 2
+colors:
+  F: 255
+  L: 16711680
+  R: 32768
+
+
+****** INITIAL CONFIGURATIONS ******
+............
+.WWWWWWWWWW.
+.W........W.
+.W........W.
+.W........W.
+.W........W.
+.W.FL.....W.
+.W........W.
+.W........W.
+.W........W.
+.W........W.
+.W........W.
+.WWWWWWWWWW.
+............
+
+****** RULES ******
+@alias X {.,W,O,F,L,R}
+
+
+# New rule: 26
+ 
+ F 
+.FW -> front, L
+ . 
+
+# New rule: 41
+ 
+ F 
+WF. -> right, R
+ . 
+
+# New rule: 52
+ 
+ F 
+.FW -> left, R
+ W 
+
+# New rule: 59
+ 
+ F 
+WF. -> right, L
+ W 
+
+# New rule: 63
+ 
+ L 
+.F. -> front, F
+ . 
+
+# New rule: 77
+ 
+ L 
+.F. -> front, F
+ W 
+
+# New rule: 88
+ 
+ L 
+.FW -> front, F
+ . 
+
+# New rule: 99
+ 
+ L 
+WF. -> front, F
+ . 
+
+# New rule: 110
+ 
+ L 
+.FW -> front, F
+ W 
+
+# New rule: 126
+ 
+ R 
+.F. -> front, F
+ . 
+
+# New rule: 151
+ 
+ R 
+.FW -> front, F
+ . 
+
+# New rule: 162
+ 
+ R 
+WF. -> front, F
+ . 
+
+# New rule: 182
+ 
+ R 
+WF. -> front, L
+ W 
+
+# New rule: 196
+ 
+ F 
+.L. -> back, L
+ . 
+
+# New rule: 209
+ 
+ F 
+.L. -> left, F
+ W 
+
+# New rule: 218
+ 
+ F 
+.LW -> back, L
+ . 
+
+# New rule: 232
+ 
+ F 
+WL. -> back, L
+ . 
+
+# New rule: 239
+ 
+ F 
+.LW -> left, F
+ W 
+
+# New rule: 247
+ 
+ F 
+WL. -> right, F
+ W 
+
+# New rule: 281
+ 
+ L 
+.LW -> back, L
+ . 
+
+# New rule: 296
+ 
+ L 
+WL. -> back, R
+ . 
+
+# New rule: 301
+ 
+ L 
+.LW -> front, R
+ W 
+
+# New rule: 307
+ 
+ L 
+WL. -> front, F
+ W 
+
+# New rule: 329
+ 
+ R 
+.L. -> front, F
+ W 
+
+# New rule: 349
+ 
+ R 
+.LW -> idle, F
+ . 
+
+# New rule: 352
+ 
+ R 
+WL. -> front, L
+ . 
+
+# New rule: 386
+ 
+ F 
+.R. -> back, R
+ . 
+
+# New rule: 397
+ 
+ F 
+.R. -> right, R
+ W 
+
+# New rule: 408
+ 
+ F 
+.RW -> back, R
+ . 
+
+# New rule: 418
+ 
+ F 
+WR. -> right, L
+ . 
+
+# New rule: 430
+ 
+ F 
+.RW -> left, R
+ W 
+
+# New rule: 437
+ 
+ F 
+WR. -> right, L
+ W 
+
+# New rule: 449
+ 
+ L 
+.R. -> back, R
+ . 
+
+# New rule: 471
+ 
+ L 
+.RW -> back, R
+ . 
+
+# New rule: 486
+ 
+ L 
+WR. -> idle, F
+ . 
+
+# New rule: 492
+ 
+ L 
+.RW -> left, L
+ W 
+
+# New rule: 504
+ 
+ R 
+.R. -> front, F
+ . 
+
+# New rule: 526
+ 
+ R 
+.R. -> left, R
+ W 
+
+# New rule: 531
+ 
+ R 
+.RW -> front, R
+ . 
+
+# New rule: 548
+ 
+ R 
+WR. -> back, R
+ . 
+
+# New rule: 552
+ 
+ R 
+.RW -> front, L
+ W 
+
+# New rule: 564
+ 
+ R 
+WR. -> right, R
+ W 
+
